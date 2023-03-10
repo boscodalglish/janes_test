@@ -8,8 +8,8 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "md-group-008-tfstate"
-    key     = "md-group-008-tfstate.tfstate"
+    bucket  = "janes-tfstate"
+    key     = "janes-tfstate.tfstate"
     region  = "eu-west-1"
     encrypt = "true"
   }
