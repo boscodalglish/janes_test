@@ -10,7 +10,7 @@ module "vpc" {
   name = local.name
   cidr = "10.0.0.0/16"
 
-  azs              = ["${local.region}a", "${local.region}b", "${local.region}c"]
+  azs              = local.azs
   private_subnets  = local.private_subnets
   public_subnets   = local.public_subnets
   database_subnets = local.database_subnets
@@ -22,7 +22,7 @@ module "vpc" {
   manage_default_route_table = true
   default_route_table_tags   = { Name = "${local.name}-default" }
 
-  enable_nat_gateway     = false
+  enable_nat_gateway     = true
   single_nat_gateway     = true
   one_nat_gateway_per_az = false
 

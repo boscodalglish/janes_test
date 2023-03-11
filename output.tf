@@ -540,3 +540,13 @@ output "nacl_main_id" {
   description = "ID for Main nacl"
   value       = aws_network_acl.main.id
 }
+
+output "security_group_Priavte_SG_allow_tls_id" {
+  description = "ID for Private Main SG"
+  value       = aws_security_group.Private_SG_allow_tls.id
+}
+
+output "security_group_Public_SG_allow_tls_id" {
+  description = "ID for Public Main SG"
+  value       = aws_security_group.Public_SG_allow_tls.id
+}
