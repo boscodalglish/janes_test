@@ -21,6 +21,14 @@ resource "aws_security_group" "Private_SG_allow_tls" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  ingress {
+      from_port   = -1
+      to_port     = -1
+      protocol    = "icmp"
+      description = "ICMP"
+      cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = {
     Name = "Private instance allow_tls"
   }
@@ -43,10 +51,10 @@ resource "aws_security_group" "Public_SG_allow_tls" {
   }
 
   ingress {
-      from_port   = 8
-      to_port     = 8
+      from_port   = -1
+      to_port     = -1
       protocol    = "icmp"
-      description = "HTTP web traffic"
+      description = "ICMP"
       cidr_blocks = ["0.0.0.0/0"]
   }
 

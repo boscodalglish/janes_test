@@ -550,3 +550,22 @@ output "security_group_Public_SG_allow_tls_id" {
   description = "ID for Public Main SG"
   value       = aws_security_group.Public_SG_allow_tls.id
 }
+
+
+
+output "complete_iam_instance_profile_arn" {
+  description = "ARN assigned by AWS to the instance profile"
+  value       = module.complete_private_asg.iam_instance_profile_arn
+}
+
+output "complete_iam_instance_profile_id" {
+  description = "Instance profile's ID"
+  value       = module.complete_private_asg.iam_instance_profile_id
+}
+
+output "complete_iam_instance_profile_unique" {
+  description = "Stable and unique string identifying the IAM instance profile"
+  value       = module.complete_private_asg.iam_instance_profile_unique
+}
+
+

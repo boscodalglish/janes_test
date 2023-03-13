@@ -26,6 +26,8 @@ module "vpc" {
   single_nat_gateway     = true
   one_nat_gateway_per_az = false
 
+  map_public_ip_on_launch = true
+
   public_subnet_tags = {
     Name = "internet-public"
   }

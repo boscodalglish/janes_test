@@ -26,7 +26,10 @@ locals {
 
   user_data = <<-EOT
     #!/bin/bash
-    echo "Hello Terraform!"
+    sudo yum update -y
+    sudo amazon-linux-extras install nginx1 -y
+    sudo amazon-linux-extras enable nginx1
+    sudo systemctl start nginx
   EOT
 }
 
@@ -41,7 +44,7 @@ module "complete_private_asg" {
   name            = "complete-${local.name}-private-v3"
   use_name_prefix = false
   instance_name   = "${local.name}-instance-private-v3"
-
+  ignore_desired_capacity_changes = false
 
   min_size                  = 1
   max_size                  = 6
@@ -82,7 +85,7 @@ module "complete_private_asg" {
   }
 
   # Launch template
-  launch_template_name        = "complete-${local.name}-priavte"
+  launch_template_name        = "complete-${local.name}-private"
   launch_template_description = "Complete launch template example"
   update_default_version      = true
 
@@ -93,7 +96,7 @@ module "complete_private_asg" {
   enable_monitoring = true
 
   create_iam_instance_profile = true
-  iam_role_name               = "complete-${local.name}"
+  iam_role_name               = "complete-${local.name}-janes"
   iam_role_path               = "/ec2/"
   iam_role_description        = "Complete IAM role example"
   iam_role_tags = {
@@ -106,7 +109,7 @@ module "complete_private_asg" {
   # # Security group is set on the ENIs below
   security_groups          = [aws_security_group.Private_SG_allow_tls.id]
 
-#   target_group_arns = module.alb.target_group_arns
+  target_group_arns = [aws_alb_target_group.private_http.arn]
 
   block_device_mappings = [
     {
@@ -292,7 +295,7 @@ module "complete_public_asg" {
   name            = "complete-${local.name}-public-v3"
   use_name_prefix = false
   instance_name   = "${local.name}-instance-public-v3"
-
+  ignore_desired_capacity_changes = false
 
   min_size                  = 1
   max_size                  = 6
@@ -333,7 +336,7 @@ module "complete_public_asg" {
   }
 
   # Launch template
-  launch_template_name        = "complete-${local.name}-private"
+  launch_template_name        = "complete-${local.name}-public"
   launch_template_description = "Complete launch template example"
   update_default_version      = true
 
@@ -344,7 +347,7 @@ module "complete_public_asg" {
   enable_monitoring = true
 
   create_iam_instance_profile = true
-  iam_role_name               = "complete-${local.name}"
+  iam_role_name               = "complete-${local.name}-janes"
   iam_role_path               = "/ec2/"
   iam_role_description        = "Complete IAM role example"
   iam_role_tags = {
@@ -357,7 +360,7 @@ module "complete_public_asg" {
   # # Security group is set on the ENIs below
   security_groups          = [aws_security_group.Public_SG_allow_tls.id]
 
-#   target_group_arns = module.alb.target_group_arns
+  target_group_arns = [aws_alb_target_group.public_http.arn]
 
   block_device_mappings = [
     {
@@ -460,28 +463,28 @@ module "complete_public_asg" {
 
   # Autoscaling Schedule
   schedules = {
-    night = {
-      min_size         = 0
-      max_size         = 0
-      desired_capacity = 0
-      recurrence       = "0 18 * * 1-5" # Mon-Fri in the evening
-      time_zone        = "Europe/Rome"
-    }
+    # night = {
+    #   min_size         = 0
+    #   max_size         = 0
+    #   desired_capacity = 0
+    #   recurrence       = "0 18 * * 1-5" # Mon-Fri in the evening
+    #   time_zone        = "Europe/Rome"
+    # }
 
-    morning = {
-      min_size         = 0
-      max_size         = 1
-      desired_capacity = 1
-      recurrence       = "0 7 * * 1-5" # Mon-Fri in the morning
-    }
+    # morning = {
+    #   min_size         = 0
+    #   max_size         = 1
+    #   desired_capacity = 1
+    #   recurrence       = "0 7 * * 1-5" # Mon-Fri in the morning
+    # }
 
-    go-offline-to-celebrate-new-year = {
-      min_size         = 0
-      max_size         = 0
-      desired_capacity = 0
-      start_time       = "2031-12-31T10:00:00Z" # Should be in the future
-      end_time         = "2032-01-01T16:00:00Z"
-    }
+    # go-offline-to-celebrate-new-year = {
+    #   min_size         = 0
+    #   max_size         = 0
+    #   desired_capacity = 0
+    #   start_time       = "2031-12-31T10:00:00Z" # Should be in the future
+    #   end_time         = "2032-01-01T16:00:00Z"
+    # }
   }
   # Target scaling policy schedule based on average CPU load
   scaling_policies = {
