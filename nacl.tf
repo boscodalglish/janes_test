@@ -54,27 +54,27 @@ resource "aws_network_acl" "main" {
     to_port    = 61000
   }
 
-tags = {
+  tags = {
     Name = "nacl_main_${local.name}"
   }
 
-depends_on = [
-  module.vpc.private_subnets
-]
-lifecycle {
-  create_before_destroy = true
-}
+  depends_on = [
+    module.vpc.private_subnets
+  ]
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_network_acl_association" "main" {
-  for_each = toset(module.vpc.private_subnets)
+  for_each       = toset(module.vpc.private_subnets)
   network_acl_id = aws_network_acl.main.id
   subnet_id      = each.value
   depends_on = [
     module.vpc.private_subnets,
     aws_network_acl.main
   ]
-lifecycle {
-  create_before_destroy = true
-}
+  lifecycle {
+    create_before_destroy = true
+  }
 }
