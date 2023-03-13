@@ -67,6 +67,30 @@ resource "aws_security_group" "public_alb_sg" {
     cidr_blocks      = ["0.0.0.0/0"]
   }
 
+  egress {
+    description      = "TLS from VPC"
+    from_port        = 0
+    to_port          = 65535
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.Public_SG_allow_tls.id]
+  }
+
+  egress {
+    description      = "TLS from VPC"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.Public_SG_allow_tls.id]
+  }
+
+  egress {
+    description      = "TLS from VPC"
+    from_port        = 0
+    to_port          = 65535
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
   tags = {
     Name = "Public ALB SG"
   }
@@ -81,7 +105,7 @@ resource "aws_alb_target_group" "private_http" {
   target_type = "instance"
 
   health_check {
-    matcher = "200-499"
+    matcher = "200-299"
     path = "/healthz"
   }
 
