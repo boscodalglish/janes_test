@@ -3,14 +3,6 @@ data "aws_ami" "web" {
   most_recent = true
 
   filter {
-    name = "name"
-
-    values = [
-      "amzn-ami-hvm-*-x86_64-gp2",
-    ]
-  }
-
-  filter {
     name = "owner-alias"
 
     values = [
@@ -41,9 +33,9 @@ module "complete_private_asg" {
   source = "terraform-aws-modules/autoscaling/aws"
 
   # Autoscaling group
-  name            = "complete-${local.name}-private-v3"
-  use_name_prefix = false
-  instance_name   = "${local.name}-instance-private-v3"
+  name                            = "complete-${local.name}-private-v3"
+  use_name_prefix                 = false
+  instance_name                   = "${local.name}-instance-private-v3"
   ignore_desired_capacity_changes = false
 
   min_size                  = 1
@@ -52,7 +44,7 @@ module "complete_private_asg" {
   wait_for_capacity_timeout = 0
   default_instance_warmup   = 300
   health_check_type         = "EC2"
-  vpc_zone_identifier       = ["${module.vpc.private_subnets[0]}","${module.vpc.private_subnets[1]}","${module.vpc.private_subnets[2]}"]
+  vpc_zone_identifier       = ["${module.vpc.private_subnets[0]}", "${module.vpc.private_subnets[1]}", "${module.vpc.private_subnets[2]}"]
 
   initial_lifecycle_hooks = [
     {
@@ -107,7 +99,7 @@ module "complete_private_asg" {
   }
 
   # # Security group is set on the ENIs below
-  security_groups          = [aws_security_group.Private_SG_allow_tls.id]
+  security_groups = [aws_security_group.Private_SG_allow_tls.id]
 
   target_group_arns = [aws_alb_target_group.private_http.arn]
 
@@ -292,9 +284,9 @@ module "complete_public_asg" {
   source = "terraform-aws-modules/autoscaling/aws"
 
   # Autoscaling group
-  name            = "complete-${local.name}-public-v3"
-  use_name_prefix = false
-  instance_name   = "${local.name}-instance-public-v3"
+  name                            = "complete-${local.name}-public-v3"
+  use_name_prefix                 = false
+  instance_name                   = "${local.name}-instance-public-v3"
   ignore_desired_capacity_changes = false
 
   min_size                  = 1
@@ -303,7 +295,7 @@ module "complete_public_asg" {
   wait_for_capacity_timeout = 0
   default_instance_warmup   = 300
   health_check_type         = "EC2"
-  vpc_zone_identifier       = ["${module.vpc.public_subnets[0]}","${module.vpc.public_subnets[1]}","${module.vpc.public_subnets[2]}"]
+  vpc_zone_identifier       = ["${module.vpc.public_subnets[0]}", "${module.vpc.public_subnets[1]}", "${module.vpc.public_subnets[2]}"]
 
   initial_lifecycle_hooks = [
     {
@@ -358,7 +350,7 @@ module "complete_public_asg" {
   }
 
   # # Security group is set on the ENIs below
-  security_groups          = [aws_security_group.Public_SG_allow_tls.id]
+  security_groups = [aws_security_group.Public_SG_allow_tls.id]
 
   target_group_arns = [aws_alb_target_group.public_http.arn]
 
