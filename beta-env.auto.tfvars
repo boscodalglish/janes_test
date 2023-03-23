@@ -1,8 +1,8 @@
 tags = {
-  "project"     = "janes-test"
-  "region"      = "eu-west-1"
+  "project"     = "onlinefilings-test"
+  "region"      = "eu-west-2"
   "environment" = "non-prod"
   "live"        = "no"
 }
 
-bucket_name = "janes-10.com"
+bucket_name = "onlinefilings-10.com"
