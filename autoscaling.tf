@@ -1,27 +1,40 @@
 # Find the latest available AMI
-data "aws_ami" "web" {
-  most_recent = true
+# data "aws_ami" "web" {
+#   most_recent = true
 
-  filter {
-    name = "owner-alias"
-
-    values = [
-      "amazon",
-    ]
-  }
-}
+# filter {
+#   name = "owner-alias"
+#   values = ["ubuntu"]
+# }
+# }
 
 
 locals {
 
   vpc_cidr = "10.0.0.0/16"
 
-  user_data = <<-EOT
+  user_data_private = <<-EOT
     #!/bin/bash
-    sudo yum update -y
-    sudo amazon-linux-extras install nginx1 -y
-    sudo amazon-linux-extras enable nginx1
-    sudo systemctl start nginx
+    sudo apt update -y
+    sudo apt install npm -y
+    sudo npm --version
+    sudo apt install nginx -y
+    sudo /etc/init.d/nginx start
+    sudo git clone https://github.com/of-flo/onlinefilings-test.git
+    cd onlinefilings-test
+    sudo npm install express
+    sudo node index.js
+  EOT
+    user_data_db = <<-EOT
+    #!/bin/bash
+    sudo apt-get update -y
+    sudo curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+    sudo apt-key list
+    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+    sudo apt update -y
+    sudo apt install mongodb-org -y
+    sudo systemctl start mongod.service
+    sudo systemctl status mongod
   EOT
 }
 
@@ -39,8 +52,8 @@ module "complete_private_asg" {
   ignore_desired_capacity_changes = false
 
   min_size                  = 1
-  max_size                  = 6
-  desired_capacity          = 3
+  max_size                  = 4
+  desired_capacity          = 2
   wait_for_capacity_timeout = 0
   default_instance_warmup   = 300
   health_check_type         = "EC2"
@@ -81,14 +94,14 @@ module "complete_private_asg" {
   launch_template_description = "Complete launch template example"
   update_default_version      = true
 
-  image_id          = "ami-062d11652fcf98313"
+  image_id          = "ami-04cac1713d99a8a58"
   instance_type     = "t3.micro"
-  user_data         = base64encode(local.user_data)
+  user_data         = base64encode(local.user_data_private)
   ebs_optimized     = true
   enable_monitoring = true
 
   create_iam_instance_profile = true
-  iam_role_name               = "complete-${local.name}-janes"
+  iam_role_name               = "complete-${local.name}-onlinefilings"
   iam_role_path               = "/ec2/"
   iam_role_description        = "Complete IAM role example"
   iam_role_tags = {
@@ -109,7 +122,7 @@ module "complete_private_asg" {
       device_name = "/dev/xvda"
       no_device   = 0
       ebs = {
-        delete_on_termination = true
+        delete_on_termination = false
         encrypted             = true
         volume_size           = 20
         volume_type           = "gp2"
@@ -118,7 +131,7 @@ module "complete_private_asg" {
       device_name = "/dev/sda1"
       no_device   = 1
       ebs = {
-        delete_on_termination = true
+        delete_on_termination = false
         encrypted             = true
         volume_size           = 30
         volume_type           = "gp2"
@@ -228,37 +241,37 @@ module "complete_private_asg" {
     # }
   }
   # Target scaling policy schedule based on average CPU load
-  scaling_policies = {
-    avg-cpu-policy-greater-than-50 = {
-      policy_type               = "TargetTrackingScaling"
-      estimated_instance_warmup = 1200
-      target_tracking_configuration = {
-        predefined_metric_specification = {
-          predefined_metric_type = "ASGAverageCPUUtilization"
-        }
-        target_value = 50.0
-      }
-    },
-    predictive-scaling = {
-      policy_type = "PredictiveScaling"
-      predictive_scaling_configuration = {
-        mode                         = "ForecastAndScale"
-        scheduling_buffer_time       = 10
-        max_capacity_breach_behavior = "IncreaseMaxCapacity"
-        max_capacity_buffer          = 10
-        metric_specification = {
-          target_value = 32
-          predefined_scaling_metric_specification = {
-            predefined_metric_type = "ASGAverageCPUUtilization"
-            resource_label         = "testLabel"
-          }
-          predefined_load_metric_specification = {
-            predefined_metric_type = "ASGTotalCPUUtilization"
-            resource_label         = "testLabel"
-          }
-        }
-      }
-    }
+  # scaling_policies = {
+  #   avg-cpu-policy-greater-than-50 = {
+  #     policy_type               = "TargetTrackingScaling"
+  #     estimated_instance_warmup = 1200
+  #     target_tracking_configuration = {
+  #       predefined_metric_specification = {
+  #         predefined_metric_type = "ASGAverageCPUUtilization"
+  #       }
+  #       target_value = 50.0
+  #     }
+  #   },
+    # predictive-scaling = {
+    #   policy_type = "PredictiveScaling"
+    #   predictive_scaling_configuration = {
+    #     mode                         = "ForecastAndScale"
+    #     scheduling_buffer_time       = 10
+    #     max_capacity_breach_behavior = "IncreaseMaxCapacity"
+    #     max_capacity_buffer          = 10
+    #     metric_specification = {
+    #       target_value = 32
+    #       predefined_scaling_metric_specification = {
+    #         predefined_metric_type = "ASGAverageCPUUtilization"
+    #         resource_label         = "testLabel"
+    #       }
+    #       predefined_load_metric_specification = {
+    #         predefined_metric_type = "ASGTotalCPUUtilization"
+    #         resource_label         = "testLabel"
+    #       }
+    #     }
+    #   }
+    # }
     # request-count-per-target = {
     #   policy_type               = "TargetTrackingScaling"
     #   estimated_instance_warmup = 120
@@ -270,32 +283,29 @@ module "complete_private_asg" {
     #     target_value = 800
     #   }
     # }
-  }
-}
-
-
-
+   }
+# }
 
 ################################################################################
-# Complete Public Autoscaling group
+# Complete Database Autoscaling group
 ################################################################################
 
-module "complete_public_asg" {
+module "complete_database_asg" {
   source = "terraform-aws-modules/autoscaling/aws"
 
   # Autoscaling group
-  name                            = "complete-${local.name}-public-v3"
+  name                            = "complete-${local.name}-db-v3"
   use_name_prefix                 = false
-  instance_name                   = "${local.name}-instance-public-v3"
+  instance_name                   = "${local.name}-instance-db-v3"
   ignore_desired_capacity_changes = false
 
   min_size                  = 1
-  max_size                  = 6
-  desired_capacity          = 3
+  max_size                  = 2
+  desired_capacity          = 1
   wait_for_capacity_timeout = 0
   default_instance_warmup   = 300
   health_check_type         = "EC2"
-  vpc_zone_identifier       = ["${module.vpc.public_subnets[0]}", "${module.vpc.public_subnets[1]}", "${module.vpc.public_subnets[2]}"]
+  vpc_zone_identifier       = ["${module.vpc.database_subnets[0]}", "${module.vpc.database_subnets[1]}", "${module.vpc.database_subnets[2]}"]
 
   initial_lifecycle_hooks = [
     {
@@ -328,18 +338,18 @@ module "complete_public_asg" {
   }
 
   # Launch template
-  launch_template_name        = "complete-${local.name}-public"
+  launch_template_name        = "complete-${local.name}-db"
   launch_template_description = "Complete launch template example"
   update_default_version      = true
 
-  image_id          = "ami-062d11652fcf98313"
+  image_id          = "ami-04cac1713d99a8a58"
   instance_type     = "t3.micro"
-  user_data         = base64encode(local.user_data)
+  user_data         = base64encode(local.user_data_db)
   ebs_optimized     = true
   enable_monitoring = true
 
   create_iam_instance_profile = true
-  iam_role_name               = "complete-${local.name}-janes"
+  iam_role_name               = "complete-${local.name}-onlinefilings"
   iam_role_path               = "/ec2/"
   iam_role_description        = "Complete IAM role example"
   iam_role_tags = {
@@ -350,9 +360,9 @@ module "complete_public_asg" {
   }
 
   # # Security group is set on the ENIs below
-  security_groups = [aws_security_group.Public_SG_allow_tls.id]
+  security_groups = [aws_security_group.db_SG_allow_tls.id]
 
-  target_group_arns = [aws_alb_target_group.public_http.arn]
+  # target_group_arns = [aws_alb_target_group.private_http.arn]
 
   block_device_mappings = [
     {
@@ -360,7 +370,7 @@ module "complete_public_asg" {
       device_name = "/dev/xvda"
       no_device   = 0
       ebs = {
-        delete_on_termination = true
+        delete_on_termination = false
         encrypted             = true
         volume_size           = 20
         volume_type           = "gp2"
@@ -369,7 +379,7 @@ module "complete_public_asg" {
       device_name = "/dev/sda1"
       no_device   = 1
       ebs = {
-        delete_on_termination = true
+        delete_on_termination = false
         encrypted             = true
         volume_size           = 30
         volume_type           = "gp2"
@@ -422,13 +432,13 @@ module "complete_public_asg" {
       delete_on_termination = true
       description           = "eth0"
       device_index          = 0
-      security_groups       = [aws_security_group.Public_SG_allow_tls.id]
+      security_groups       = [aws_security_group.db_SG_allow_tls.id]
     },
     {
       delete_on_termination = true
       description           = "eth1"
       device_index          = 1
-      security_groups       = [aws_security_group.Public_SG_allow_tls.id]
+      security_groups       = [aws_security_group.db_SG_allow_tls.id]
     }
   ]
 
@@ -523,3 +533,5 @@ module "complete_public_asg" {
     # }
   }
 }
+
+

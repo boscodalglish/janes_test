@@ -1,21 +1,21 @@
 data "aws_instances" "private_instances" {
   instance_tags = {
-    Name = "ex-janes-instance-private-v3"
+    Name = "ex-onlinefilings-instance-private-v3"
   }
   filter {
     name   = "tag:Name"
-    values = ["ex-janes-instance-private-v3"]
+    values = ["ex-onlinefilings-instance-private-v3"]
   }
   instance_state_names = ["running"]
 }
 
 data "aws_instances" "public_instances" {
   instance_tags = {
-    Name = "ex-janes-instance-public-v3"
+    Name = "ex-onlinefilings-instance-public-v3"
   }
   filter {
     name   = "tag:Name"
-    values = ["ex-janes-instance-public-v3"]
+    values = ["ex-onlinefilings-instance-public-v3"]
   }
   instance_state_names = ["running"]
 }
@@ -40,6 +40,14 @@ resource "aws_security_group" "private_alb_sg" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   tags = {
@@ -106,7 +114,7 @@ resource "aws_alb_target_group" "private_http" {
 
   health_check {
     matcher = "200-299"
-    path    = "/healthz"
+    path    = "/"
   }
 
   vpc_id = module.vpc.vpc_id
@@ -123,8 +131,8 @@ resource "aws_lb_target_group_attachment" "private_test" {
 resource "aws_alb" "private" {
 
   name            = "instance-private-alb"
-  subnets         = module.vpc.private_subnets
-  security_groups = [aws_security_group.private_alb_sg.id]
+  subnets         = module.vpc.public_subnets
+  security_groups = [aws_security_group.public_alb_sg.id]
   internal        = false
 
 }
@@ -160,7 +168,7 @@ resource "aws_alb_target_group" "public_http" {
 
   health_check {
     matcher = "200-499"
-    path    = "/healthz"
+    path    = "/"
   }
 
   vpc_id = module.vpc.vpc_id

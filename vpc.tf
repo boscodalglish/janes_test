@@ -41,6 +41,6 @@ module "vpc" {
   tags = local.tags
 
   vpc_tags = {
-    Name = "vpc-janes"
+    Name = "vpc-onlinefilings"
   }
 }
