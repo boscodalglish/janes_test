@@ -15,15 +15,17 @@ locals {
 
   user_data_private = <<-EOT
     #!/bin/bash
-    sudo apt update -y
-    sudo apt install npm -y
-    sudo npm --version
-    sudo apt install nginx -y
-    sudo /etc/init.d/nginx start
+    sudo apt-get update -y
+    curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    node -v
+    sudo apt-get install git -y
     sudo git clone https://github.com/of-flo/onlinefilings-test.git
     cd onlinefilings-test
+    sudo npm install
     sudo npm install express
-    sudo node index.js
+    sudo npm install pm2 -g
+    sudo pm2 start index.js
   EOT
     user_data_db = <<-EOT
     #!/bin/bash
